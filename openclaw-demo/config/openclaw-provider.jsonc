@@ -3,12 +3,22 @@
     defaults: {
       model: { primary: "foundry-npu/foundry-npu" },
       timeoutSeconds: 300,
+      maxConcurrent: 1,
+      subagents: {
+        maxConcurrent: 1
+      },
       memorySearch: { provider: "none" },
       models: {
         "foundry-npu/foundry-npu": {
           alias: "Foundry NPU via LiteLLM"
         }
       }
+    }
+  },
+  tools: {
+    profile: "minimal",
+    codeMode: {
+      enabled: false
     }
   },
   models: {
@@ -31,9 +41,9 @@
               cacheRead: 0,
               cacheWrite: 0
             },
-            contextWindow: 65536,
-            contextTokens: 32768,
-            maxTokens: 128
+              contextWindow: 28672,
+              contextTokens: 22000,
+              maxTokens: 96
           }
         ]
       }

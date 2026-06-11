@@ -20,6 +20,7 @@ The goal is to show a practical progression:
 |   |-- litellm/
 |   |-- openwebui/
 |   |-- demo-ui/
+|   |-- safe-proxy/
 |   `-- scripts/
 |-- hermes-agent-demo/
 |   |-- README.md
@@ -51,13 +52,16 @@ Open WebUI / Hermes / OpenClaw
 LiteLLM OpenAI-compatible proxy
   |
   v
+Safe serialized NPU proxy
+  |
+  v
 Microsoft Foundry Local
   |
   v
 Qwen 2.5 QNN model on Snapdragon NPU
 ```
 
-Foundry Local is the model runtime. LiteLLM normalizes the Foundry endpoint into an OpenAI-compatible API that tools and agent frameworks can consume. Open WebUI gives us the most reliable demo surface for conversation. Hermes and OpenClaw are used to explore agent loops on the same local backend.
+Foundry Local is the model runtime. The safe proxy serializes requests, clamps long contexts, and disables OpenAI-style parallel tool payloads before traffic reaches the QNN NPU session. LiteLLM then exposes that protected route as an OpenAI-compatible API that tools and agent frameworks can consume. Open WebUI gives us the most reliable demo surface for conversation. Hermes and OpenClaw are used to explore agent loops on the same local backend.
 
 ## Current Demo Status
 
@@ -65,7 +69,7 @@ Foundry Local is the model runtime. LiteLLM normalizes the Foundry endpoint into
 | --- | --- | --- |
 | Microsoft Foundry demo | Local Qwen 2.5 inference on Snapdragon NPU with Open WebUI | Primary working demo path |
 | Hermes agent demo | Run Hermes against the Foundry NPU model through LiteLLM | Experimental |
-| OpenClaw demo | Run OpenClaw against the Foundry NPU model through LiteLLM | Model inference works; full agent loop is experimental |
+| OpenClaw demo | Run OpenClaw against the Foundry NPU model through LiteLLM | Model inference works; minimal full-agent smoke test works |
 
 ## Why Three Phases?
 
@@ -105,6 +109,7 @@ This repository now includes the runnable assets used during local testing:
 - Foundry Local Python bridge: `microsoft-foundry-demo/foundry/app.py`
 - Foundry launcher and test client: `microsoft-foundry-demo/foundry/`
 - LiteLLM launcher and config: `microsoft-foundry-demo/litellm/` and `microsoft-foundry-demo/config/`
+- Safe serialized NPU proxy: `microsoft-foundry-demo/safe-proxy/`
 - Open WebUI launcher, installer, pipe, and tool code: `microsoft-foundry-demo/openwebui/`
 - Small custom demo UI created during testing: `microsoft-foundry-demo/demo-ui/`
 - Hermes provider/profile/skill/cron assets: `hermes-agent-demo/`
@@ -115,3 +120,15 @@ This repository now includes the runnable assets used during local testing:
 The Foundry Local NPU model can answer direct prompts, but full agent frameworks add heavier prompts, tool schemas, planning instructions, memory/session metadata, and strict response formatting. That larger workload can expose runtime or compatibility issues that do not appear in plain chat.
 
 For a reliable public demo, use Open WebUI as the main interface and frame Hermes/OpenClaw as agent-framework integration experiments unless the full agent loop has been validated on the target device.
+
+## NPU Runtime Safety
+
+The `GroupQueryAttention seqlens_k[0] is out of range` failure is handled as a runtime safety issue, not as an ordinary application exception. The repo includes these mitigations:
+
+- `microsoft-foundry-demo/safe-proxy/` serializes all NPU chat completion requests.
+- requests are clamped to small output sizes by default.
+- long message history is trimmed before reaching Foundry.
+- OpenAI tool payloads are stripped by default for the NPU route.
+- `microsoft-foundry-demo/scripts/restart-npu-runtime.ps1` clears a dirty NPU session after a runtime failure.
+- `microsoft-foundry-demo/scripts/upgrade-foundry-local.ps1` checks for a newer Foundry Local runtime.
+- `openclaw-demo/workspace-minimal/` keeps OpenClaw startup context small enough for the NPU route.

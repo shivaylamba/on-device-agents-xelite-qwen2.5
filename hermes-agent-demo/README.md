@@ -13,6 +13,9 @@ Hermes
 LiteLLM
   |
   v
+Safe serialized NPU proxy
+  |
+  v
 Microsoft Foundry Local
   |
   v
@@ -42,7 +45,8 @@ hermes-agent-demo/
 Hermes expects a model provider it can talk to through a standard API shape. LiteLLM acts as the compatibility layer:
 
 - Hermes sends OpenAI-style requests to LiteLLM.
-- LiteLLM forwards those requests to Foundry Local.
+- LiteLLM forwards those requests to the safe serialized NPU proxy.
+- The safe proxy trims large request payloads and forwards one request at a time to Foundry Local.
 - Foundry Local runs the Qwen 2.5 QNN model on the NPU.
 
 ## Configure Hermes
@@ -72,10 +76,16 @@ $headers=@{Authorization='Bearer sk-win-vivo2'}
 Invoke-RestMethod http://127.0.0.1:4001/v1/models -Headers $headers
 ```
 
-The LiteLLM response should include:
+The safe proxy and LiteLLM responses should include:
 
 ```text
 foundry-npu
+```
+
+From `microsoft-foundry-demo`, verify:
+
+```powershell
+.\scripts\health-check.ps1
 ```
 
 ## Example Hermes Test
@@ -96,7 +106,7 @@ foundry-npu through http://127.0.0.1:4001/v1
 
 This path is experimental.
 
-In local testing, the same backend can answer direct prompts through Foundry and LiteLLM, but full Hermes agent turns may hang or time out. That does not mean Foundry Local or the NPU model is broken. It means the full agent loop is a heavier workload than a simple chat completion.
+In local testing, the same backend can answer direct prompts through Foundry and LiteLLM, but full Hermes agent turns may hang or time out. The safe proxy reduces the chance of QNN attention/cache failures by serializing and clamping requests, but Hermes may still be too heavy for this NPU route.
 
 ## Why Agent Turns Are Harder Than Chat
 

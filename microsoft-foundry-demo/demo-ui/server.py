@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parent
-FOUNDRY_BASE = os.environ.get("FOUNDRY_BASE", "http://127.0.0.1:5272/v1")
+FOUNDRY_BASE = os.environ.get("FOUNDRY_BASE", "http://127.0.0.1:5299/v1")
 MODEL = os.environ.get("FOUNDRY_MODEL_ID", "qwen2.5-0.5b-instruct-qnn-npu")
 DRAFT_DIR = Path(os.environ.get("DEMO_DRAFT_DIR", ROOT / "drafts"))
 
@@ -132,7 +132,7 @@ def run_agent(prompt):
                 "messages": messages,
                 "tools": TOOLS,
                 "tool_choice": "auto",
-                "max_tokens": 120,
+                "max_tokens": 96,
                 "stream": False,
             },
             timeout=18,
@@ -232,7 +232,7 @@ def run_agent(prompt):
             {
                 "model": MODEL,
                 "messages": final_messages,
-                "max_tokens": 160,
+                "max_tokens": 96,
                 "stream": False,
             },
             timeout=24,

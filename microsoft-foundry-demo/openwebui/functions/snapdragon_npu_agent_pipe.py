@@ -8,6 +8,7 @@ version: 0.1.0
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import json
+import os
 import urllib.error
 import urllib.request
 
@@ -53,11 +54,12 @@ class Pipe:
         )
 
     def _ask_foundry(self, user_prompt: str, tool_results: dict) -> str:
-        endpoint = "http://127.0.0.1:5272/v1/chat/completions"
+        base_url = os.environ.get("SAFE_NPU_BASE_URL", "http://127.0.0.1:5299/v1").rstrip("/")
+        endpoint = f"{base_url}/chat/completions"
         payload = {
             "model": tool_results["npu_status"]["model"],
             "temperature": 0.2,
-            "max_tokens": 60,
+            "max_tokens": 48,
             "messages": [
                 {
                     "role": "system",

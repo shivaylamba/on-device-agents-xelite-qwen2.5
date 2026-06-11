@@ -19,6 +19,9 @@ microsoft-foundry-demo/
 |   `-- test_api.py
 |-- litellm/
 |   `-- start-litellm.ps1
+|-- safe-proxy/
+|   |-- safe_npu_proxy.py
+|   `-- start-safe-proxy.ps1
 |-- openwebui/
 |   |-- start-openwebui.ps1
 |   |-- install-demo-agent.py
@@ -32,7 +35,11 @@ microsoft-foundry-demo/
 |-- config/
 |   `-- litellm-foundry.yaml
 `-- scripts/
-    `-- start-demo-stack.ps1
+    |-- start-demo-stack.ps1
+    |-- restart-npu-runtime.ps1
+    |-- health-check.ps1
+    |-- test-safe-proxy.ps1
+    `-- upgrade-foundry-local.ps1
 ```
 
 ## Architecture
@@ -47,13 +54,16 @@ Open WebUI
 LiteLLM proxy
   |
   v
+Safe serialized NPU proxy
+  |
+  v
 Foundry Local /v1 endpoint
   |
   v
 Qwen 2.5 QNN model on Snapdragon NPU
 ```
 
-Open WebUI is used here only as the user interface. The model itself is still running locally through Foundry Local.
+Open WebUI is used here only as the user interface. The model itself is still running locally through Foundry Local. The safe proxy exists to keep agent-style traffic from overwhelming the QNN NPU session.
 
 ## Model Route
 
@@ -62,10 +72,21 @@ The intended model route is:
 ```text
 Open WebUI model name: foundry-npu
 LiteLLM model name: foundry-npu
+Safe proxy endpoint: http://127.0.0.1:5299/v1
 Foundry model id: qwen2.5-7b-instruct-qnn-npu
 Runtime: Microsoft Foundry Local
 Device: Snapdragon NPU
 ```
+
+## Check Or Upgrade Foundry Local
+
+```powershell
+.\scripts\upgrade-foundry-local.ps1
+```
+
+If winget reports no upgrade, continue with the safe proxy path below. The proxy mitigations are still useful on older Foundry versions.
+
+On the tested machine, winget reported no newer package than Foundry Local `0.8.119`.
 
 ## Start Foundry Local
 
@@ -99,7 +120,22 @@ qwen2.5-7b-instruct-qnn-npu
 
 ## Start LiteLLM
 
-Use the included LiteLLM config:
+Start the safe proxy first:
+
+```powershell
+.\safe-proxy\start-safe-proxy.ps1 `
+  -Python "C:\Program Files\Python312-arm64\python.exe" `
+  -Upstream http://127.0.0.1:5272/v1 `
+  -Port 5299
+```
+
+Test the safe proxy:
+
+```powershell
+.\scripts\test-safe-proxy.ps1
+```
+
+Then start LiteLLM. The included LiteLLM config points at the safe proxy, not raw Foundry:
 
 ```powershell
 .\litellm\start-litellm.ps1 -HostName 127.0.0.1 -Port 4001
@@ -162,6 +198,18 @@ The helper script starts Foundry, waits for the model endpoint, starts LiteLLM, 
 .\scripts\start-demo-stack.ps1
 ```
 
+To recover after a `GroupQueryAttention` or `seqlens_k` failure:
+
+```powershell
+.\scripts\restart-npu-runtime.ps1
+```
+
+To verify the whole stack:
+
+```powershell
+.\scripts\health-check.ps1
+```
+
 ## Demo Prompts
 
 Use short prompts first:
@@ -189,3 +237,5 @@ Summarize the benefits of local inference: latency, privacy, cost, and offline u
 ## Known Limitations
 
 The Open WebUI chat path is the most reliable demo path. Full agent loops are tested separately in the Hermes and OpenClaw folders because they add heavier prompts, tool schemas, and structured output requirements.
+
+The safe proxy reduces the chance of NPU attention/cache failures, but it cannot fully fix bugs inside the Foundry/QNN runtime. If the error appears, restart the NPU runtime and retry with a smaller prompt.
