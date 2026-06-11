@@ -1,0 +1,30 @@
+{
+  models: {
+    mode: "merge",
+    providers: {
+      "qairt-onnx": {
+        baseUrl: "http://127.0.0.1:4101/v1",
+        apiKey: "local-qairt",
+        api: "openai-completions",
+        timeoutSeconds: 300,
+        models: [
+          {
+            id: "qairt-onnx",
+            name: "QAIRT / ONNX Runtime QNN EP local model",
+            reasoning: false,
+            input: ["text"],
+            cost: {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0
+            },
+            contextWindow: 8192,
+            contextTokens: 6000,
+            maxTokens: 128
+          }
+        ]
+      }
+    }
+  }
+}

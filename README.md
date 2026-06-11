@@ -1,12 +1,13 @@
 # On-Device Agents on Snapdragon X Elite with Qwen 2.5
 
-This repository is organized as a three-phase demo path for running local AI experiences on Snapdragon X Elite class Windows devices with Qualcomm NPU acceleration.
+This repository is organized as a multi-phase demo path for running local AI experiences on Snapdragon X Elite class Windows devices with Qualcomm NPU acceleration.
 
 The goal is to show a practical progression:
 
 1. Run a Qwen 2.5 model locally through Microsoft Foundry Local on the Snapdragon NPU.
 2. Put a usable chat interface on top with Open WebUI for the Foundry demo.
 3. Explore agent frameworks, first with Hermes and then with OpenClaw, using the same local NPU-backed model route.
+4. Explore a lower-level QAIRT / ONNX Runtime QNN Execution Provider path that targets the HTP/NPU without Microsoft Foundry Local.
 
 ## Repository Structure
 
@@ -35,6 +36,11 @@ The goal is to show a practical progression:
 |   |-- config/
 |   |   `-- openclaw-provider.jsonc
 |   `-- scripts/
+|-- qairt-onnx-demo/
+|   |-- README.md
+|   |-- runtime/
+|   |-- scripts/
+|   `-- openclaw/
 `-- README.md
 ```
 
@@ -70,6 +76,7 @@ Foundry Local is the model runtime. The safe proxy serializes requests, clamps l
 | Microsoft Foundry demo | Local Qwen 2.5 inference on Snapdragon NPU with Open WebUI | Primary working demo path |
 | Hermes agent demo | Run Hermes against the Foundry NPU model through LiteLLM | Experimental |
 | OpenClaw demo | Run OpenClaw against the Foundry NPU model through LiteLLM | Model inference works; minimal full-agent smoke test works |
+| QAIRT / ONNX Runtime QNN demo | Run QNN Execution Provider directly against HTP/NPU without Foundry | Scaffold plus local QNN EP probe |
 
 ## Why Three Phases?
 
@@ -78,6 +85,7 @@ The phases separate the demo into clear layers:
 - **Foundry Local + Open WebUI** proves the local model and NPU path.
 - **Hermes** tests whether an agent framework can use the same local model route.
 - **OpenClaw** tests a second agent framework and gives a more direct model-provider validation path.
+- **QAIRT / ONNX Runtime QNN EP** tests the lower-level HTP runtime path without Foundry Local's model catalog or chat server.
 
 This separation is important because simple local inference and full agent execution are not the same workload. A direct prompt can succeed while a full agent loop may fail due to longer prompts, structured output requirements, tool definitions, retries, or runtime context handling.
 
@@ -114,6 +122,7 @@ This repository now includes the runnable assets used during local testing:
 - Small custom demo UI created during testing: `microsoft-foundry-demo/demo-ui/`
 - Hermes provider/profile/skill/cron assets: `hermes-agent-demo/`
 - OpenClaw provider config and smoke-test scripts: `openclaw-demo/`
+- QAIRT / ONNX Runtime QNN EP probe, runner, and agent server scaffold: `qairt-onnx-demo/`
 
 ## Important Note About Agent Loops
 

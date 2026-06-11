@@ -9,6 +9,8 @@ node_modules/
 .env
 .env.local
 open-webui/
+qairt-onnx-demo/models/
+qairt-onnx-demo/cache/
 openclaw-workspace/
 **/.openclaw/
 openclaw-demo/workspace-minimal/HEARTBEAT.md
