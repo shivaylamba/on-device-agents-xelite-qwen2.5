@@ -164,6 +164,25 @@ Expected proof in the JSON output:
 }
 ```
 
+To prove one of the Qualcomm demo tools is actually connected through OpenClaw, apply the MCP tool config and run:
+
+```powershell
+.\scripts\apply-openclaw-config.ps1
+.\scripts\test-openclaw-demo-tool.ps1 -SessionKey "agent:main:npu-demo-tool-real"
+```
+
+Expected proof:
+
+```json
+"toolSummary": {
+  "calls": 1,
+  "tools": [
+    "snapdragon-npu__get_npu_status"
+  ],
+  "failures": 0
+}
+```
+
 ## Current Status
 
 The direct OpenClaw model-provider test works.
@@ -182,7 +201,16 @@ In local testing, the full-agent smoke test returned:
 protected agent route works.
 ```
 
-The tool-call smoke test also works with the safe proxy in `-KeepOpenAITools` mode. It used the OpenClaw `session_status` tool and returned `toolSummary.calls = 1`.
+The tool-call smoke tests also work with the safe proxy in `-KeepOpenAITools` mode. The basic test uses OpenClaw's `session_status`; the demo-specific test uses `snapdragon-npu__get_npu_status` from the local MCP server under `mcp/`.
+
+If Foundry returns `GroupQueryAttention` / `seqlens_k[0] is out of range` even for a tiny direct prompt, the NPU runtime is failing before OpenClaw can execute a tool. Restart with:
+
+```powershell
+cd ..\microsoft-foundry-demo
+.\scripts\restart-npu-runtime.ps1 -FoundryModel qwen2.5-7b -KeepOpenAITools
+```
+
+If the same error continues on a one-token prompt, reboot Windows or reload a different NPU model before rerunning the OpenClaw tool test.
 
 Heavier OpenClaw workspaces or code-mode prompts can still overflow OpenClaw's own precheck before a request reaches the NPU model. The safe proxy reduces the chance of low-level Foundry/QNN attention-layer failures after aborted or oversized requests, but it cannot fully fix runtime bugs inside the NPU execution provider.
 

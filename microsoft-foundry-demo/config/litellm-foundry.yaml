@@ -8,7 +8,7 @@ model_list:
       use_chat_completions_api: true
     model_info:
       mode: chat
-      supports_function_calling: false
+      supports_function_calling: true
       base_model: qwen2.5-7b-instruct-qnn-npu
 
 litellm_settings:

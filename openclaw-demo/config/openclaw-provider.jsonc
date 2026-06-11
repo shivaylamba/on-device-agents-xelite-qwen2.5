@@ -17,6 +17,8 @@
   },
   tools: {
     profile: "minimal",
+    allow: null,
+    alsoAllow: ["bundle-mcp", "group:plugins", "snapdragon-npu__*"],
     codeMode: {
       enabled: false
     }

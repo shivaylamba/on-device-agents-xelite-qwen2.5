@@ -6,7 +6,8 @@ param(
   [int]$OpenWebUIPort = 8080,
   [string]$Python = "C:\Program Files\Python312-arm64\python.exe",
   [string]$FoundryModel = "qwen2.5-7b",
-  [int]$MaxTokens = 128
+  [int]$MaxTokens = 128,
+  [switch]$KeepOpenAITools
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,9 +52,10 @@ Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -WorkingDirectory $
 
 Wait-HttpOk -Url "http://$HostName`:$FoundryPort/v1/models" -TimeoutSeconds 240
 
+$keepToolsArg = if ($KeepOpenAITools) { " -KeepOpenAITools" } else { "" }
 $safeProxyCommand = @"
 Set-Location '$demoRoot'
-.\safe-proxy\start-safe-proxy.ps1 -HostName '$HostName' -Port $SafeProxyPort -Upstream 'http://$HostName`:$FoundryPort/v1' -Python '$Python' -MaxTokens $MaxTokens
+.\safe-proxy\start-safe-proxy.ps1 -HostName '$HostName' -Port $SafeProxyPort -Upstream 'http://$HostName`:$FoundryPort/v1' -Python '$Python' -MaxTokens $MaxTokens$keepToolsArg
 "@
 
 Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -WorkingDirectory $demoRoot -ArgumentList @(

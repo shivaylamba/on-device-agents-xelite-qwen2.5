@@ -3,7 +3,8 @@ param(
   [int]$SafeProxyPort = 5299,
   [int]$LiteLLMPort = 4001,
   [string]$Python = "C:\Program Files\Python312-arm64\python.exe",
-  [string]$FoundryModel = "qwen2.5-7b"
+  [string]$FoundryModel = "qwen2.5-7b",
+  [switch]$KeepOpenAITools
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,4 +24,5 @@ Start-Sleep -Seconds 3
   -SafeProxyPort $SafeProxyPort `
   -LiteLLMPort $LiteLLMPort `
   -Python $Python `
-  -FoundryModel $FoundryModel
+  -FoundryModel $FoundryModel `
+  -KeepOpenAITools:$KeepOpenAITools

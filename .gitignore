@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 *.log
 logs/
+node_modules/
 .env
 .env.local
 open-webui/

@@ -221,9 +221,28 @@ def _tool_names(payload):
     return names
 
 
+def _resolve_allowed_tool_name(name, available_tools):
+    if name in available_tools:
+        return name
+    if not isinstance(name, str) or "__" in name:
+        return None
+    matches = [tool for tool in available_tools if tool.endswith(f"__{name}")]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
 def _coerce_text_tool_call(response, request_payload):
     available_tools = _tool_names(request_payload)
-    if "session_status" not in available_tools:
+    allowed_tools = {
+        tool
+        for tool in available_tools
+        if tool == "session_status"
+        or tool.endswith("__get_current_time")
+        or tool.endswith("__get_npu_status")
+        or tool.endswith("__draft_stage_note")
+    }
+    if not allowed_tools:
         return response
 
     choices = response.get("choices")
@@ -240,10 +259,11 @@ def _coerce_text_tool_call(response, request_payload):
 
     name = parsed.get("name")
     arguments = parsed.get("arguments") or {}
-    if name != "session_status" or not isinstance(arguments, dict):
+    resolved_name = _resolve_allowed_tool_name(name, allowed_tools)
+    if resolved_name is None or not isinstance(arguments, dict):
         return response
 
-    # Keep this deliberately narrow: one demo-safe OpenClaw tool, proper OpenAI tool call shape.
+    # Keep this deliberately narrow: demo-safe OpenClaw tools, proper OpenAI tool call shape.
     arguments = {
         key: value
         for key, value in arguments.items()
@@ -253,7 +273,7 @@ def _coerce_text_tool_call(response, request_payload):
         "id": f"call_safe_proxy_{int(time.time() * 1000)}",
         "type": "function",
         "function": {
-            "name": "session_status",
+            "name": resolved_name,
             "arguments": json.dumps(arguments),
         },
     }
