@@ -1,0 +1,13 @@
+providers:
+  foundry-npu:
+    type: custom
+    base_url: http://127.0.0.1:4001/v1
+    api_key: sk-win-vivo2
+    model: foundry-npu
+
+profiles:
+  npu-agent:
+    provider: foundry-npu
+    model: foundry-npu
+    description: Hermes profile routed through LiteLLM to Foundry Local on Snapdragon NPU.
+

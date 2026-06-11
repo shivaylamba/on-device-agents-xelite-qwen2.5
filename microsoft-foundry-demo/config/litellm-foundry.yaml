@@ -1,0 +1,22 @@
+model_list:
+  - model_name: foundry-npu
+    litellm_params:
+      model: openai/qwen2.5-7b-instruct-qnn-npu
+      api_base: http://127.0.0.1:5272/v1
+      api_key: foundry-local
+      timeout: 180
+      use_chat_completions_api: true
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      base_model: qwen2.5-7b-instruct-qnn-npu
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  request_timeout: 180
+  num_retries: 1
+
+general_settings:
+  master_key: sk-win-vivo2
+

@@ -1,0 +1,96 @@
+# On-Device Agents on Snapdragon X Elite with Qwen 2.5
+
+This repository is organized as a three-phase demo path for running local AI experiences on Snapdragon X Elite class Windows devices with Qualcomm NPU acceleration.
+
+The goal is to show a practical progression:
+
+1. Run a Qwen 2.5 model locally through Microsoft Foundry Local on the Snapdragon NPU.
+2. Put a usable chat interface on top with Open WebUI for the Foundry demo.
+3. Explore agent frameworks, first with Hermes and then with OpenClaw, using the same local NPU-backed model route.
+
+## Repository Structure
+
+```text
+.
+|-- microsoft-foundry-demo/
+|   |-- README.md
+|   `-- config/
+|       `-- litellm-foundry.yaml
+|-- hermes-agent-demo/
+|   |-- README.md
+|   `-- config/
+|       `-- hermes-custom-provider.yaml
+|-- openclaw-demo/
+|   |-- README.md
+|   `-- config/
+|       `-- openclaw-provider.jsonc
+`-- README.md
+```
+
+## Architecture
+
+The core runtime path is:
+
+```text
+User
+  |
+  v
+Open WebUI / Hermes / OpenClaw
+  |
+  v
+LiteLLM OpenAI-compatible proxy
+  |
+  v
+Microsoft Foundry Local
+  |
+  v
+Qwen 2.5 QNN model on Snapdragon NPU
+```
+
+Foundry Local is the model runtime. LiteLLM normalizes the Foundry endpoint into an OpenAI-compatible API that tools and agent frameworks can consume. Open WebUI gives us the most reliable demo surface for conversation. Hermes and OpenClaw are used to explore agent loops on the same local backend.
+
+## Current Demo Status
+
+| Phase | Goal | Status |
+| --- | --- | --- |
+| Microsoft Foundry demo | Local Qwen 2.5 inference on Snapdragon NPU with Open WebUI | Primary working demo path |
+| Hermes agent demo | Run Hermes against the Foundry NPU model through LiteLLM | Experimental |
+| OpenClaw demo | Run OpenClaw against the Foundry NPU model through LiteLLM | Model inference works; full agent loop is experimental |
+
+## Why Three Phases?
+
+The phases separate the demo into clear layers:
+
+- **Foundry Local + Open WebUI** proves the local model and NPU path.
+- **Hermes** tests whether an agent framework can use the same local model route.
+- **OpenClaw** tests a second agent framework and gives a more direct model-provider validation path.
+
+This separation is important because simple local inference and full agent execution are not the same workload. A direct prompt can succeed while a full agent loop may fail due to longer prompts, structured output requirements, tool definitions, retries, or runtime context handling.
+
+## Prerequisites
+
+- Windows on Snapdragon X Elite or compatible Snapdragon NPU hardware.
+- Microsoft Foundry Local installed.
+- Python 3.11 or 3.12.
+- A local Qwen 2.5 QNN/NPU model available through Foundry Local.
+- LiteLLM for the OpenAI-compatible proxy.
+- Open WebUI for the UI demo.
+- Hermes CLI for the Hermes phase.
+- OpenClaw CLI for the OpenClaw phase.
+
+## Suggested Demo Flow
+
+1. Start with `microsoft-foundry-demo`.
+2. Verify Foundry Local exposes the Qwen 2.5 NPU model.
+3. Start LiteLLM using `microsoft-foundry-demo/config/litellm-foundry.yaml`.
+4. Connect Open WebUI to LiteLLM.
+5. Run prompts that highlight local, private, on-device inference.
+6. Move to `hermes-agent-demo` to show the attempted Hermes integration path.
+7. Move to `openclaw-demo` to show the OpenClaw model-provider validation and agent-loop experiment.
+
+## Important Note About Agent Loops
+
+The Foundry Local NPU model can answer direct prompts, but full agent frameworks add heavier prompts, tool schemas, planning instructions, memory/session metadata, and strict response formatting. That larger workload can expose runtime or compatibility issues that do not appear in plain chat.
+
+For a reliable public demo, use Open WebUI as the main interface and frame Hermes/OpenClaw as agent-framework integration experiments unless the full agent loop has been validated on the target device.
+

@@ -1,0 +1,11 @@
+.venv/
+.litellm-venv/
+.openwebui-venv/
+__pycache__/
+*.pyc
+*.log
+logs/
+.env
+.env.local
+open-webui/
+openclaw-workspace/

@@ -1,0 +1,42 @@
+{
+  agents: {
+    defaults: {
+      model: { primary: "foundry-npu/foundry-npu" },
+      timeoutSeconds: 300,
+      memorySearch: { provider: "none" },
+      models: {
+        "foundry-npu/foundry-npu": {
+          alias: "Foundry NPU via LiteLLM"
+        }
+      }
+    }
+  },
+  models: {
+    mode: "merge",
+    providers: {
+      "foundry-npu": {
+        baseUrl: "http://127.0.0.1:4001/v1",
+        apiKey: "sk-win-vivo2",
+        api: "openai-completions",
+        timeoutSeconds: 300,
+        models: [
+          {
+            id: "foundry-npu",
+            name: "Foundry NPU Qwen 2.5 7B via LiteLLM",
+            reasoning: false,
+            input: ["text"],
+            cost: {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0
+            },
+            contextWindow: 65536,
+            contextTokens: 32768,
+            maxTokens: 128
+          }
+        ]
+      }
+    }
+  }
+}
