@@ -10,3 +10,7 @@ logs/
 open-webui/
 openclaw-workspace/
 **/.openclaw/
+openclaw-demo/workspace-minimal/HEARTBEAT.md
+openclaw-demo/workspace-minimal/IDENTITY.md
+openclaw-demo/workspace-minimal/SOUL.md
+openclaw-demo/workspace-minimal/TOOLS.md
