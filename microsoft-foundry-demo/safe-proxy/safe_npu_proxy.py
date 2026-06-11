@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import threading
 import time
 import urllib.error
@@ -38,38 +39,69 @@ def _sse_chat_response(handler, payload):
     message = choice.get("message") or {}
     delta = choice.get("delta") or {}
     content = message.get("content") or delta.get("content") or ""
+    tool_calls = message.get("tool_calls") or delta.get("tool_calls") or []
     model = payload.get("model", "foundry-npu")
     created = payload.get("created", int(time.time()))
     response_id = payload.get("id", "safe-npu-proxy")
 
-    chunks = [
-        {
-            "id": response_id,
-            "object": "chat.completion.chunk",
-            "created": created,
-            "model": model,
-            "choices": [
-                {
-                    "index": 0,
-                    "delta": {"role": "assistant", "content": content},
-                    "finish_reason": None,
-                }
-            ],
-        },
-        {
-            "id": response_id,
-            "object": "chat.completion.chunk",
-            "created": created,
-            "model": model,
-            "choices": [
-                {
-                    "index": 0,
-                    "delta": {},
-                    "finish_reason": choice.get("finish_reason") or "stop",
-                }
-            ],
-        },
-    ]
+    if tool_calls:
+        chunks = [
+            {
+                "id": response_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"role": "assistant", "tool_calls": tool_calls},
+                        "finish_reason": None,
+                    }
+                ],
+            },
+            {
+                "id": response_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {},
+                        "finish_reason": "tool_calls",
+                    }
+                ],
+            },
+        ]
+    else:
+        chunks = [
+            {
+                "id": response_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"role": "assistant", "content": content},
+                        "finish_reason": None,
+                    }
+                ],
+            },
+            {
+                "id": response_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {},
+                        "finish_reason": choice.get("finish_reason") or "stop",
+                    }
+                ],
+            },
+        ]
 
     body = "".join(f"data: {json.dumps(chunk)}\n\n" for chunk in chunks) + "data: [DONE]\n\n"
     encoded = body.encode("utf-8")
@@ -138,6 +170,104 @@ def _sanitize_chat_payload(payload):
         clean.pop("parallel_tool_calls", None)
 
     return clean
+
+
+def _extract_tool_like_json(text):
+    if not isinstance(text, str):
+        return None
+
+    start = text.find("{")
+    if start < 0:
+        return None
+
+    depth = 0
+    in_string = False
+    escape = False
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            continue
+
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                candidate = text[start : index + 1]
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    return None
+    return None
+
+
+def _tool_names(payload):
+    names = set()
+    for tool in payload.get("tools") or []:
+        if not isinstance(tool, dict):
+            continue
+        function = tool.get("function") or {}
+        name = function.get("name")
+        if isinstance(name, str):
+            names.add(name)
+    return names
+
+
+def _coerce_text_tool_call(response, request_payload):
+    available_tools = _tool_names(request_payload)
+    if "session_status" not in available_tools:
+        return response
+
+    choices = response.get("choices")
+    if not isinstance(choices, list) or not choices:
+        return response
+
+    choice = choices[0]
+    message = choice.get("message") or {}
+    delta = choice.get("delta") or {}
+    content = message.get("content") or delta.get("content") or ""
+    parsed = _extract_tool_like_json(content)
+    if not isinstance(parsed, dict):
+        return response
+
+    name = parsed.get("name")
+    arguments = parsed.get("arguments") or {}
+    if name != "session_status" or not isinstance(arguments, dict):
+        return response
+
+    # Keep this deliberately narrow: one demo-safe OpenClaw tool, proper OpenAI tool call shape.
+    arguments = {
+        key: value
+        for key, value in arguments.items()
+        if isinstance(key, str) and re.match(r"^[A-Za-z0-9_-]+$", key)
+    }
+    tool_call = {
+        "id": f"call_safe_proxy_{int(time.time() * 1000)}",
+        "type": "function",
+        "function": {
+            "name": "session_status",
+            "arguments": json.dumps(arguments),
+        },
+    }
+
+    coerced = dict(response)
+    coerced_choice = dict(choice)
+    coerced_message = dict(message)
+    coerced_message["content"] = None
+    coerced_message["tool_calls"] = [tool_call]
+    coerced_choice["message"] = coerced_message
+    coerced_choice["delta"] = {"role": "assistant", "tool_calls": [tool_call]}
+    coerced_choice["finish_reason"] = "tool_calls"
+    coerced["choices"] = [coerced_choice] + choices[1:]
+    return coerced
 
 
 def _forward(method, path, payload=None):
@@ -209,6 +339,8 @@ class Handler(BaseHTTPRequestHandler):
         with NPU_LOCK:
             try:
                 status, response = _forward("POST", "/chat/completions", payload)
+                if status == 200:
+                    response = _coerce_text_tool_call(response, payload)
                 if client_requested_stream and status == 200:
                     _sse_chat_response(self, response)
                 else:

@@ -20,7 +20,8 @@ openclaw-demo/
 |-- scripts/
 |   |-- apply-openclaw-config.ps1
 |   |-- test-openclaw-infer.ps1
-|   `-- test-openclaw-agent.ps1
+|   |-- test-openclaw-agent.ps1
+|   `-- test-openclaw-tool.ps1
 |-- workspace-minimal/
 |   |-- AGENTS.md
 |   `-- USER.md
@@ -126,6 +127,43 @@ This is the experimental test:
 .\scripts\test-openclaw-agent.ps1
 ```
 
+## Test 3: Agent Tool Use
+
+For a real tool-call demo, restart the safe proxy with OpenAI tool schemas enabled:
+
+```powershell
+cd ..\microsoft-foundry-demo
+Get-NetTCPConnection -LocalPort 5299 -State Listen -ErrorAction SilentlyContinue |
+  ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+.\safe-proxy\start-safe-proxy.ps1 `
+  -HostName 127.0.0.1 `
+  -Port 5299 `
+  -Upstream http://127.0.0.1:5272/v1 `
+  -Python "C:\Program Files\Python312-arm64\python.exe" `
+  -MaxTokens 96 `
+  -KeepOpenAITools
+```
+
+Then run:
+
+```powershell
+cd ..\openclaw-demo
+.\scripts\test-openclaw-tool.ps1 -SessionKey "agent:main:npu-tool-demo"
+```
+
+Expected proof in the JSON output:
+
+```json
+"toolSummary": {
+  "calls": 1,
+  "tools": [
+    "session_status"
+  ],
+  "failures": 0
+}
+```
+
 ## Current Status
 
 The direct OpenClaw model-provider test works.
@@ -143,6 +181,8 @@ In local testing, the full-agent smoke test returned:
 ```text
 protected agent route works.
 ```
+
+The tool-call smoke test also works with the safe proxy in `-KeepOpenAITools` mode. It used the OpenClaw `session_status` tool and returned `toolSummary.calls = 1`.
 
 Heavier OpenClaw workspaces or code-mode prompts can still overflow OpenClaw's own precheck before a request reaches the NPU model. The safe proxy reduces the chance of low-level Foundry/QNN attention-layer failures after aborted or oversized requests, but it cannot fully fix runtime bugs inside the NPU execution provider.
 
