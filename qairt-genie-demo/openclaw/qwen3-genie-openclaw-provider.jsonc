@@ -1,0 +1,30 @@
+{
+  models: {
+    mode: "merge",
+    providers: {
+      "qwen3-genie": {
+        baseUrl: "http://127.0.0.1:4102/v1",
+        apiKey: "local-qairt-genie",
+        api: "openai-completions",
+        timeoutSeconds: 300,
+        models: [
+          {
+            id: "qwen3-4b-genie",
+            name: "Qwen3 4B via QAIRT Genie on Snapdragon X Elite",
+            reasoning: false,
+            input: ["text"],
+            cost: {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0
+            },
+            contextWindow: 4096,
+            contextTokens: 3000,
+            maxTokens: 512
+          }
+        ]
+      }
+    }
+  }
+}
