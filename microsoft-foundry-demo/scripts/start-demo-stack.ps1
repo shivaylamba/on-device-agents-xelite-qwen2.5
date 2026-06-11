@@ -68,17 +68,9 @@ Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -WorkingDirectory $
 
 Wait-HttpOk -Url "http://$HostName`:$SafeProxyPort/health" -TimeoutSeconds 60
 
-$litellmCommand = @"
-Set-Location '$demoRoot'
-.\litellm\start-litellm.ps1 -HostName '$HostName' -Port $LiteLLMPort -Python '$Python'
-"@
-
-Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -WorkingDirectory $demoRoot -ArgumentList @(
-  "-NoProfile",
-  "-ExecutionPolicy",
-  "Bypass",
-  "-Command",
-  $litellmCommand
+$aliasProxy = Join-Path $demoRoot "litellm\foundry_alias_proxy.py"
+Start-Process -FilePath $Python -WindowStyle Hidden -WorkingDirectory $demoRoot -ArgumentList @(
+  "`"$aliasProxy`" --host $HostName --port $LiteLLMPort"
 )
 
 Wait-HttpOk -Url "http://$HostName`:$LiteLLMPort/v1/models" -Headers @{ Authorization = "Bearer sk-win-vivo2" } -TimeoutSeconds 120
@@ -98,5 +90,5 @@ Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -WorkingDirectory $
 
 Write-Host "Foundry Local: http://$HostName`:$FoundryPort/v1"
 Write-Host "Safe Proxy:    http://$HostName`:$SafeProxyPort/v1"
-Write-Host "LiteLLM:       http://$HostName`:$LiteLLMPort/v1"
+Write-Host "Model alias:   http://$HostName`:$LiteLLMPort/v1"
 Write-Host "Open WebUI:    http://$HostName`:$OpenWebUIPort"

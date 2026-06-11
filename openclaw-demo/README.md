@@ -152,6 +152,8 @@ cd ..\openclaw-demo
 .\scripts\test-openclaw-tool.ps1 -SessionKey "agent:main:npu-tool-demo"
 ```
 
+The OpenClaw provider expects `http://127.0.0.1:4001/v1`. By default the Foundry demo now starts a small LiteLLM-compatible alias proxy on that port. It exposes `foundry-npu` and forwards requests to the safe proxy on `5299`. If you specifically want real LiteLLM instead of the lightweight alias proxy, start `microsoft-foundry-demo\litellm\start-litellm.ps1` with `-UseRealLiteLLM`.
+
 Expected proof in the JSON output:
 
 ```json
@@ -182,6 +184,8 @@ Expected proof:
   "failures": 0
 }
 ```
+
+On the current Snapdragon NPU stack, the model may still time out while generating the final answer after the tool result. For tool-use validation, the key proof is `toolSummary.calls = 1`, the tool name `snapdragon-npu__get_npu_status`, and `failures = 0`.
 
 ## Current Status
 
