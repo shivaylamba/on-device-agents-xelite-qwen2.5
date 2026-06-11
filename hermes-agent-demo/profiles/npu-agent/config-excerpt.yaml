@@ -1,0 +1,58 @@
+# npu-agent profile config.yaml - key settings
+# Full file: C:\Users\<you>\AppData\Local\hermes\profiles\npu-agent\config.yaml
+# _config_version: 24
+
+# === MODEL ===
+model:
+  provider: custom
+  default: foundry-npu          # LiteLLM :4001 -> Foundry :5272 -> Qwen2.5-7B NPU
+
+# === CUSTOM PROVIDERS ===
+custom_providers:
+- api_key: sk-win-vivo2         # local LiteLLM master key for this demo
+  api_mode: chat_completions
+  base_url: http://localhost:4001/v1
+  model: foundry-npu
+  name: foundry-npu
+- api_key: YOUR_FREELLMAPI_KEY  # env var: FREELLMAPI_API_KEY
+  api_mode: chat_completions
+  base_url: http://localhost:3001/v1
+  model: deepseek-ai/deepseek-v4-pro
+  name: freeLLMAPI
+- api_key: YOUR_LMSTUDIO_KEY    # env var: LM_API_KEY
+  api_mode: chat_completions
+  base_url: http://localhost:1234/v1
+  model: local-model
+  name: lmstudio
+
+# === AGENT SETTINGS ===
+agent:
+  reasoning_effort: medium
+  max_turns: 90
+  gateway_timeout: 3600
+
+# === DELEGATION ===
+delegation:
+  orchestrator_enabled: true
+  max_concurrent_children: 3
+  max_spawn_depth: 1
+  subagent_auto_approve: false
+
+# === FALLBACK PROVIDERS ===
+fallback_providers:
+- base_url: https://openrouter.ai/api/v1
+  fallback_mode: rate_limit
+  model: deepseek/deepseek-v4-flash:free
+  provider: openrouter
+- base_url: https://openrouter.ai/api/v1
+  fallback_mode: error
+  model: openrouter/owl-alpha
+  provider: openrouter
+
+# === FOUNDRY-SPECIFIC TIMEOUT ===
+providers:
+  foundry-npu:
+    request_timeout_seconds: 180
+    models:
+      foundry-npu:
+        timeout_seconds: 180

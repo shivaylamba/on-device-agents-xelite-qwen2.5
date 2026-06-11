@@ -19,6 +19,24 @@ Microsoft Foundry Local
 Qwen 2.5 QNN model on Snapdragon NPU
 ```
 
+## Included Assets
+
+```text
+hermes-agent-demo/
+|-- config/
+|   |-- hermes-custom-provider.yaml
+|   `-- hermes-custom-providers.yaml
+|-- profiles/
+|   `-- npu-agent/
+|-- skill/
+|   `-- SKILL.md
+|-- cron/
+|-- scripts/
+|   |-- NPU_INDEXER.md
+|   `-- test-hermes-agent.ps1
+`-- README.md
+```
+
 ## Why LiteLLM Is Used
 
 Hermes expects a model provider it can talk to through a standard API shape. LiteLLM acts as the compatibility layer:
@@ -65,7 +83,7 @@ foundry-npu
 Use a short prompt first:
 
 ```powershell
-hermes -z "Reply in one short sentence: what model route are you using?" --ignore-rules
+.\scripts\test-hermes-agent.ps1
 ```
 
 If Hermes supports selecting the configured profile, select the profile that points at:
@@ -103,4 +121,3 @@ That larger prompt and stricter response format can expose model/runtime limitat
 ## Demo Recommendation
 
 For a public Qualcomm demo, use this phase to explain the integration path and current engineering learnings. Use the Microsoft Foundry + Open WebUI phase as the primary working demo unless the Hermes loop has been validated on the target device.
-

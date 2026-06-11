@@ -1,0 +1,13 @@
+# Hermes main-profile custom_providers block - foundry-npu entry
+# Location: C:\Users\<you>\AppData\Local\hermes\config.yaml
+# Added: 2026-05-31
+
+custom_providers:
+- api_key: foundry-local
+  api_mode: chat_completions
+  base_url: http://localhost:5272/v1
+  model: deepseek-r1-distill-qwen-7b-qnn-npu:2
+  name: foundry-npu
+# Usage in Hermes: /model custom:foundry-npu
+# Note: the main profile points directly to :5272 without LiteLLM.
+# The npu-agent profile routes through :4001 for LiteLLM tool-calling support.

@@ -9,6 +9,32 @@ This phase demonstrates local inference on Snapdragon NPU using Microsoft Foundr
 - An OpenAI-compatible API layer through LiteLLM.
 - A polished chat UI through Open WebUI.
 
+## Included Code
+
+```text
+microsoft-foundry-demo/
+|-- foundry/
+|   |-- app.py
+|   |-- start-foundry.ps1
+|   `-- test_api.py
+|-- litellm/
+|   `-- start-litellm.ps1
+|-- openwebui/
+|   |-- start-openwebui.ps1
+|   |-- install-demo-agent.py
+|   |-- functions/
+|   |   `-- snapdragon_npu_agent_pipe.py
+|   `-- tools/
+|       `-- snapdragon_npu_demo.py
+|-- demo-ui/
+|   |-- server.py
+|   `-- static/
+|-- config/
+|   `-- litellm-foundry.yaml
+`-- scripts/
+    `-- start-demo-stack.ps1
+```
+
 ## Architecture
 
 ```text
@@ -43,7 +69,17 @@ Device: Snapdragon NPU
 
 ## Start Foundry Local
 
-Start Foundry Local with the Qwen 2.5 7B NPU model. The exact command may vary depending on your local bridge script, but the expected endpoint is:
+Start Foundry Local with the included bridge:
+
+```powershell
+cd microsoft-foundry-demo
+$env:PYTHON = "C:\Program Files\Python312-arm64\python.exe"
+$env:FOUNDRY_MODEL = "qwen2.5-7b"
+$env:FOUNDRY_PORT = "5272"
+.\foundry\start-foundry.ps1
+```
+
+The expected endpoint is:
 
 ```text
 http://127.0.0.1:5272/v1
@@ -66,7 +102,7 @@ qwen2.5-7b-instruct-qnn-npu
 Use the included LiteLLM config:
 
 ```powershell
-litellm --config .\microsoft-foundry-demo\config\litellm-foundry.yaml --host 127.0.0.1 --port 4001
+.\litellm\start-litellm.ps1 -HostName 127.0.0.1 -Port 4001
 ```
 
 Verify the LiteLLM route:
@@ -93,6 +129,38 @@ Model: foundry-npu
 ```
 
 Then start a chat using `foundry-npu`.
+
+To run the included Open WebUI launcher:
+
+```powershell
+.\openwebui\start-openwebui.ps1 -HostName 127.0.0.1 -Port 8080
+```
+
+By default this points Open WebUI at LiteLLM:
+
+```text
+http://127.0.0.1:4001/v1
+```
+
+To install the included demo pipe/tool into Open WebUI's local database:
+
+```powershell
+.\.openwebui-venv\Scripts\python.exe .\openwebui\install-demo-agent.py
+```
+
+To run the smaller custom UI created during local testing:
+
+```powershell
+python .\demo-ui\server.py --host 127.0.0.1 --port 8081
+```
+
+## One-Command Local Launcher
+
+The helper script starts Foundry, waits for the model endpoint, starts LiteLLM, and then starts Open WebUI:
+
+```powershell
+.\scripts\start-demo-stack.ps1
+```
 
 ## Demo Prompts
 
@@ -121,4 +189,3 @@ Summarize the benefits of local inference: latency, privacy, cost, and offline u
 ## Known Limitations
 
 The Open WebUI chat path is the most reliable demo path. Full agent loops are tested separately in the Hermes and OpenClaw folders because they add heavier prompts, tool schemas, and structured output requirements.
-

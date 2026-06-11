@@ -1,0 +1,14 @@
+{
+  "id": "de72595f8c54",
+  "name": "npu-daily-journal",
+  "description": "Write a daily journal entry to the Obsidian vault using Qwen2.5-7B on the NPU.",
+  "prompt": "You are the NPU Agent. Write today's journal entry in English.\n\n1. Print today's date in YYYY-MM-DD format.\n2. Generate a short journal entry about today in 3-5 sentences. Make it creative, positive, and memorable.\n3. Write the entry to C:\\Users\\<you>\\Documents\\gaiagent\\gaiagent\\ai\\journal\\ with filename YYYY-MM-DD.md.\n4. Create the folder if it does not exist.\n5. Print the completion status.",
+  "skills": ["foundry-npu"],
+  "model": null,
+  "provider": null,
+  "schedule": "0 8 * * *",
+  "profile": "npu-agent",
+  "deliver": "local",
+  "enabled_toolsets": ["file", "terminal"],
+  "notes": "This cron job uses the npu-agent profile. It runs Qwen2.5-7B on the NPU in required tool-calling mode. Foundry service and LiteLLM proxy must be running."
+}

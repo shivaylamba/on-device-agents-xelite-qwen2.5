@@ -11,6 +11,19 @@ OpenClaw gives us two useful test levels:
 
 The direct model-provider test is the clean validation that OpenClaw can reach the local NPU model through LiteLLM.
 
+## Included Assets
+
+```text
+openclaw-demo/
+|-- config/
+|   `-- openclaw-provider.jsonc
+|-- scripts/
+|   |-- apply-openclaw-config.ps1
+|   |-- test-openclaw-infer.ps1
+|   `-- test-openclaw-agent.ps1
+`-- README.md
+```
+
 ## Architecture
 
 ```text
@@ -43,6 +56,12 @@ Base URL: http://127.0.0.1:4001/v1
 API key: sk-win-vivo2
 ```
 
+Apply the config patch to the local OpenClaw config:
+
+```powershell
+.\scripts\apply-openclaw-config.ps1
+```
+
 ## Health Checks
 
 Before testing OpenClaw, verify Foundry and LiteLLM:
@@ -59,10 +78,7 @@ Invoke-RestMethod http://127.0.0.1:4001/v1/models -Headers $headers
 This is the recommended smoke test:
 
 ```powershell
-openclaw infer model run --local `
-  --model foundry-npu/foundry-npu `
-  --prompt "Reply exactly: OpenClaw is using Foundry Local on Snapdragon NPU." `
-  --json
+.\scripts\test-openclaw-infer.ps1
 ```
 
 Expected output:
@@ -91,14 +107,7 @@ OpenClaw -> LiteLLM -> Foundry Local -> Snapdragon NPU
 This is the experimental test:
 
 ```powershell
-openclaw agent --local `
-  --agent main `
-  --session-key agent:main:npu-smoke `
-  --model foundry-npu/foundry-npu `
-  --message "Reply in one short sentence: what runtime stack are you using?" `
-  --thinking off `
-  --timeout 300 `
-  --json
+.\scripts\test-openclaw-agent.ps1
 ```
 
 ## Current Status
@@ -120,4 +129,3 @@ In simple terms:
 ## Demo Recommendation
 
 Use `openclaw infer model run` as the OpenClaw validation demo. Treat `openclaw agent` as an engineering experiment until the full loop is stable on the target hardware and model runtime.
-

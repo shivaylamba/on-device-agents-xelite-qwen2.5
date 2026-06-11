@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snapdragon NPU Agent Demo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <h1>Snapdragon NPU Agent</h1>
+            <p>Foundry Local tool-calling demo</p>
+          </div>
+          <div class="status" id="status">
+            <span class="dot"></span>
+            <span id="statusText">Checking</span>
+          </div>
+        </header>
+
+        <section class="prompt-row">
+          <textarea id="prompt" spellcheck="true">What time is it, what is the NPU status, and what short demo note should I show on stage?</textarea>
+          <button id="runButton" type="button">Run Agent</button>
+        </section>
+
+        <section class="timeline" aria-live="polite">
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Tool Calls</h2>
+              <span id="toolCount">0</span>
+            </div>
+            <div id="events" class="events empty">Run the agent to see tool calls.</div>
+          </article>
+
+          <article class="panel answer-panel">
+            <div class="panel-head">
+              <h2>Final Answer</h2>
+              <span id="latency">-</span>
+            </div>
+            <div id="answer" class="answer empty">The agent response will appear here.</div>
+          </article>
+        </section>
+      </section>
+
+      <aside class="sidebar">
+        <section>
+          <h2>Runtime</h2>
+          <dl>
+            <div>
+              <dt>Model</dt>
+              <dd id="model">-</dd>
+            </div>
+            <div>
+              <dt>Device</dt>
+              <dd id="device">-</dd>
+            </div>
+            <div>
+              <dt>Acceleration</dt>
+              <dd id="ep">-</dd>
+            </div>
+            <div>
+              <dt>Endpoint</dt>
+              <dd id="endpoint">-</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section>
+          <h2>Metrics</h2>
+          <dl>
+            <div>
+              <dt>Total</dt>
+              <dd id="totalMs">-</dd>
+            </div>
+            <div>
+              <dt>Final call</dt>
+              <dd id="finalMs">-</dd>
+            </div>
+            <div>
+              <dt>Tokens/sec</dt>
+              <dd id="tps">-</dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

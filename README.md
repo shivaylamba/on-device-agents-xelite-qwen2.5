@@ -14,16 +14,26 @@ The goal is to show a practical progression:
 .
 |-- microsoft-foundry-demo/
 |   |-- README.md
-|   `-- config/
-|       `-- litellm-foundry.yaml
+|   |-- config/
+|   |   `-- litellm-foundry.yaml
+|   |-- foundry/
+|   |-- litellm/
+|   |-- openwebui/
+|   |-- demo-ui/
+|   `-- scripts/
 |-- hermes-agent-demo/
 |   |-- README.md
-|   `-- config/
-|       `-- hermes-custom-provider.yaml
+|   |-- config/
+|   |   `-- hermes-custom-provider.yaml
+|   |-- profiles/
+|   |-- skill/
+|   |-- cron/
+|   `-- scripts/
 |-- openclaw-demo/
 |   |-- README.md
-|   `-- config/
-|       `-- openclaw-provider.jsonc
+|   |-- config/
+|   |   `-- openclaw-provider.jsonc
+|   `-- scripts/
 `-- README.md
 ```
 
@@ -88,9 +98,20 @@ This separation is important because simple local inference and full agent execu
 6. Move to `hermes-agent-demo` to show the attempted Hermes integration path.
 7. Move to `openclaw-demo` to show the OpenClaw model-provider validation and agent-loop experiment.
 
+## What Code Is Included
+
+This repository now includes the runnable assets used during local testing:
+
+- Foundry Local Python bridge: `microsoft-foundry-demo/foundry/app.py`
+- Foundry launcher and test client: `microsoft-foundry-demo/foundry/`
+- LiteLLM launcher and config: `microsoft-foundry-demo/litellm/` and `microsoft-foundry-demo/config/`
+- Open WebUI launcher, installer, pipe, and tool code: `microsoft-foundry-demo/openwebui/`
+- Small custom demo UI created during testing: `microsoft-foundry-demo/demo-ui/`
+- Hermes provider/profile/skill/cron assets: `hermes-agent-demo/`
+- OpenClaw provider config and smoke-test scripts: `openclaw-demo/`
+
 ## Important Note About Agent Loops
 
 The Foundry Local NPU model can answer direct prompts, but full agent frameworks add heavier prompts, tool schemas, planning instructions, memory/session metadata, and strict response formatting. That larger workload can expose runtime or compatibility issues that do not appear in plain chat.
 
 For a reliable public demo, use Open WebUI as the main interface and frame Hermes/OpenClaw as agent-framework integration experiments unless the full agent loop has been validated on the target device.
-
